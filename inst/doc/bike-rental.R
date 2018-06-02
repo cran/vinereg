@@ -44,7 +44,7 @@ bikedata  <- bikedata %>%
     )
 
 ## ------------------------------------------------------------------------
-bikedata  <- bikedata %>%
+bikedata <- bikedata %>%
     mutate(
         temperature = 66 * temperature + 16,
         windspeed = 67 * windspeed,

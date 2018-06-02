@@ -2,7 +2,7 @@
 % Please edit documentation in R/vinereg.R
 \name{vinereg}
 \alias{vinereg}
-\title{D-vine quantile regression}
+\title{D-vine regression models}
 \usage{
 vinereg(formula, data, family_set = "parametric", selcrit = "loglik",
   order = NA, par_1d = list(), cores = 1, uscale = FALSE, ...)
@@ -27,7 +27,7 @@ of variable names (after calling \code{cctools::cont_conv()} on the
 for each margin, e.g. \code{list(xmin = c(0, 0, -Inf))} if the response and
 first covariate have non-negative support.}
 
-\item{cores}{integer.}
+\item{cores}{integer; the number of cores to use for computations.}
 
 \item{uscale}{logical indicating whether the data are already on copula scale
 (no margins have to be fitted).}
@@ -37,40 +37,50 @@ first covariate have non-negative support.}
 \value{
 An object of class vinereg. It is a list containing the elements
 \describe{
+\item{formula}{the formula used for the fit.}
+\item{selcrit}{criterion used for variable selection.}
+\item{model_frame}{the data used to fit the regression model.}
 \item{margins}{list of marginal models fitted by \code{\link[kde1d:kde1d]{kde1d::kde1d()}}.}
 \item{vine}{an \code{\link[rvinecopulib:vinecop_dist]{rvinecopulib::vinecop_dist()}} object containing the fitted
 D-vine.}
+\item{stats}{fit statistics such as conditional log-likelihood/AIC/BIC and
+p-values for each variable's contribution.}
 \item{order}{order of the covariates chosen by the variable selection algorithm.}
 \item{selected_vars}{indices of selected variables.}
-\item{formula}{the model formula specified by the user.}
-\item{model_frame}{the data used to fit the D-vine.}
 }
-This object can be plugged into \code{\link[=predict.vinereg]{predict.vinereg()}} to predict conditional
-quantiles.
+Use \code{\link[=predict.vinereg]{predict.vinereg()}} to predict conditional
+quantiles. \code{summary.vinereg()} shows the contribution of each selected
+variable with the associated p-value derived from a likelihood ratio test.
 }
 \description{
 Sequential estimation of a regression D-vine for the purpose of quantile
-prediction as described in Kraus and Czado (2017).
+prediction as described in Kraus and Czado (2017). If discrete variables
+are declared as \code{ordered()} or \code{factor()}, jittering is used
+to make them continuous (see \code{cctools::cont_conv()}). Although this may
+make the model estimate inconsistent, predictions are usually still reasonable.
 }
 \examples{
 # simulate data
-x <- matrix(rnorm(300), 100, 3)
-y <- x \%*\% c(1, -1, 2)
-dat <- data.frame(y = y, x = x, z = as.factor(rbinom(100, 3, 0.5)))
+x <- matrix(rnorm(300), 100, 2)
+y <- x \%*\% c(1, -2)
+dat <- data.frame(y = y, x = x, z = as.factor(rbinom(100, 2, 0.5)))
 
-# fit vine regression model (parametric)
-fit <- vinereg(y ~ ., dat, family_set = "parametric")
+# fit vine regression model
+(fit <- vinereg(y ~ ., dat))
 
-# model predictions (median)
-pred <- predict(fit, newdata = dat, alpha = 0.5)
+# inspect model
+summary(fit)
+plot_effects(fit)
+
+# model predictions
+mu_hat  <- predict(fit, newdata = dat, alpha = NA)          # mean
+med_hat <- predict(fit, newdata = dat, alpha = 0.5)         # median
 
 # observed vs predicted
-plot(cbind(y, pred))
-
+plot(cbind(y, mu_hat))
 
 ## fixed variable order (no selection)
-fit <- vinereg(y ~ ., dat, order = c("x.3", "x.1", "x.2", "z.1"))
-fit$order
+(fit <- vinereg(y ~ ., dat, order = c("x.2", "x.1", "z.1")))
 
 }
 \references{
