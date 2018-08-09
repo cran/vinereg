@@ -3,7 +3,7 @@
 #' @param object an object of class \code{vinereg}.
 #' @param newdata matrix of covariate values for which to predict the quantile.
 #' @param alpha vector of quantile levels; `NA` predicts the mean based on an
-#'   average of the `1:20 / 21`-quantiles.
+#'   average of the `1:10 / 11`-quantiles.
 #' @param uscale if \code{TRUE} input (newdata) and output is on copula scale.
 #' @param ... unused.
 #'
@@ -38,11 +38,10 @@
 #' @export
 #'
 #' @importFrom kde1d pkde1d qkde1d
-#' @importFrom rvinecopulib rvinecop
 #' @importFrom stats predict
 predict.vinereg <- function(object, newdata, alpha = 0.5, uscale = FALSE, ...) {
     if (missing(newdata))
-        return(fitted.vinereg(object, alpha, uscale))
+        return(fitted.vinereg(object, alpha = alpha, uscale = uscale))
     stopifnot(length(alpha) > 0)
     if (any(is.na(alpha)) & inherits(object$model_frame[[1]], "ordered"))
         stop("cannot predict mean for ordered response.")
@@ -112,7 +111,6 @@ predict.vinereg <- function(object, newdata, alpha = 0.5, uscale = FALSE, ...) {
         alpha <- "mean"
     }
 
-
     preds <- as.data.frame(preds)
     names(preds) <- alpha
     preds
@@ -122,12 +120,12 @@ predict.vinereg <- function(object, newdata, alpha = 0.5, uscale = FALSE, ...) {
 #' @importFrom stats fitted
 #' @export
 fitted.vinereg <- function(object, alpha = 0.5, ...) {
-    predict.vinereg(object, newdata = object$model_frame, alpha = alpha)
+    predict.vinereg(object, newdata = object$model_frame, alpha = alpha, ...)
 }
 
 
 predict_mean <- function(object, newdata, uscale) {
-    preds <- predict.vinereg(object, newdata, alpha = 1:20 / 21, uscale)
+    preds <- predict.vinereg(object, newdata, alpha = 1:10/ 11, uscale)
     data.frame(mean = rowMeans(preds))
 }
 
@@ -139,11 +137,12 @@ with_levels <- function(q, lvls) {
     q
 }
 
+#' @importFrom rvinecopulib inverse_rosenblatt
 qdvine <- function(u, alpha, vine) {
-    d <- ncol(vine$matrix)
+    d <- dim(vine)[1]
     if (ncol(u) != d - 1)
         stop("Dimensions of u and vine are not compatible")
-    vine$matrix <- gen_dvine_mat(d)
+    vine$structure <- as_rvine_structure(gen_dvine_mat(d))
 
     ## obtain diagonal entries in V matrix
     n <- nrow(u)
@@ -162,10 +161,11 @@ qdvine <- function(u, alpha, vine) {
     } else {
         tmp <- V[d, 2, ]
     }
+    tmp <- pmin(pmax(tmp, 1e-10), 1 - 1e-10)
 
     # return as list (will be processed further)
     lapply(alpha,
            function(a)
-               matrix(rvinecop(n, vine, U = cbind(a, tmp)), ncol = d)[, 1])
+               matrix(inverse_rosenblatt(cbind(a, tmp), vine), ncol = d)[, 1])
 }
 

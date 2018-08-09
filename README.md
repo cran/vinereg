@@ -12,16 +12,16 @@ How to install
 
 -   the stable release from CRAN:
 
-``` r
-install.packages("vinereg")
-```
+    ``` r
+    install.packages("vinereg")
+    ```
 
 -   the latest development version:
 
-``` r
-# install.packages("devtools")
-devtools::install_github("tnagler/vinereg", build_vignettes = TRUE)
-```
+    ``` r
+    # install.packages("devtools")
+    devtools::install_github("tnagler/vinereg", build_vignettes = TRUE)
+    ```
 
 Functionality
 -------------
@@ -32,6 +32,7 @@ Example
 -------
 
 ``` r
+set.seed(5)
 library(vinereg)
 data(mtcars)
 
@@ -42,22 +43,22 @@ mtcars[["am"]] <- as.factor(mtcars[["am"]])
 
 # fit model
 (fit <- vinereg(mpg ~ ., data = mtcars))
-#> D-vine regression model: mpg | disp, cyl, wt, carb, gear, hp, qsec, vs, am.1, drat 
-#> nobs = 32, edf = 91, cll = -53.89, caic = 289.78, cbic = 423.17
+#> D-vine regression model: mpg | disp, hp, gear, carb, cyl, am.1, wt, vs, qsec, drat 
+#> nobs = 32, edf = 95, cll = -56.09, caic = 302.19, cbic = 441.43
 
 summary(fit)
-#>     var     edf         cll         caic        cbic      p_value
-#> 1   mpg 3.2e-11 -98.5927195 197.18543898 197.1854390           NA
-#> 2  disp 2.0e+00  29.5342816 -55.06856318 -52.1370914 1.490817e-13
-#> 3   cyl 3.0e+00   5.3128672  -4.62573447  -0.2285268 1.393178e-02
-#> 4    wt 4.0e+00   4.0383425  -0.07668494   5.7862587 8.880917e-02
-#> 5  carb 7.0e+00   1.5845952  10.83080969  21.0909610 8.689220e-01
-#> 6  gear 1.0e+01   1.2307931  17.53841376  32.1957728 9.914238e-01
-#> 7    hp 1.0e+01   1.5297458  16.94050837  31.5978674 9.799891e-01
-#> 8  qsec 1.3e+01   0.4923380  25.01532409  44.0698908 9.999965e-01
-#> 9    vs 1.2e+01   0.5492991  22.90140188  40.4902327 9.999761e-01
-#> 10 am.1 1.5e+01   0.2353038  29.52939230  51.5154308 1.000000e+00
-#> 11 drat 1.5e+01   0.1931010  29.61379802  51.5998366 1.000000e+00
+#>     var     edf          cll       caic       cbic      p_value
+#> 1   mpg 3.2e-11 -98.59271949 197.185439 197.185439           NA
+#> 2  disp 2.0e+00  29.53428159 -55.068563 -52.137091 1.490817e-13
+#> 3    hp 3.0e+00   2.33231128   1.335377   5.732585 1.980680e-01
+#> 4  gear 5.0e+00   2.16379041   5.672419  13.001099 5.032784e-01
+#> 5  carb 7.0e+00   2.25663902   9.486722  19.746873 7.191178e-01
+#> 6   cyl 9.0e+00   1.57187334  14.856253  28.047876 9.583219e-01
+#> 7  am.1 1.0e+01   1.75059329  16.498813  31.156172 9.670581e-01
+#> 8    wt 1.3e+01   1.62623809  22.747524  41.802091 9.968597e-01
+#> 9    vs 1.3e+01   0.52958111  24.940838  43.995405 9.999946e-01
+#> 10 qsec 1.6e+01   0.70430954  30.591381  54.043155 9.999992e-01
+#> 11 drat 1.7e+01   0.02886845  33.942263  58.859773 1.000000e+00
 
 # show marginal effects for all selected variables
 plot_effects(fit)
@@ -71,10 +72,10 @@ plot_effects(fit)
 # predict mean and median
 head(predict(fit, mtcars, alpha = c(NA, 0.5)), 4)
 #>       mean      0.5
-#> 1 19.12384 19.01768
-#> 2 19.14141 19.04763
-#> 3 28.28939 28.52435
-#> 4 21.30317 20.99698
+#> 1 19.34836 19.36129
+#> 2 19.17641 19.19810
+#> 3 25.28064 25.13942
+#> 4 19.70841 19.67779
 ```
 
 Vignettes

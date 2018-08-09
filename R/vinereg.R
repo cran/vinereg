@@ -17,7 +17,7 @@
 #'   of variable names (after calling `cctools::cont_conv()` on the
 #'   `model.frame()`); selected automatically if `order = NA` (default).
 #' @param par_1d list of options passed to [kde1d::kde1d()], must be one value
-#'   for each margin, e.g. `list(xmin = c(0, 0, -Inf))` if the response and
+#'   for each margin, e.g. `list(xmin = c(0, 0, NaN))` if the response and
 #'   first covariate have non-negative support.
 #' @param cores integer; the number of cores to use for computations.
 #' @param uscale logical indicating whether the data are already on copula scale
@@ -101,6 +101,8 @@ vinereg <- function(formula, data, family_set = "parametric", selcrit = "loglik"
     if (cores > 1) {
         future::plan(future::multiprocess, workers = cores)
         on.exit(future::plan(), add = TRUE)
+    } else {
+        future::plan(future::sequential)
     }
 
     ## estimation of the marginals and transformation to copula data
@@ -125,7 +127,8 @@ vinereg <- function(formula, data, family_set = "parametric", selcrit = "loglik"
                 break
             current_fit <- new_fits[[status$best_ind]]
         }
-        names(status$selected_vars) <- var_nms[status$selected_vars + 1]
+        if (length(status$selected_vars) > 0)
+            names(status$selected_vars) <- var_nms[status$selected_vars + 1]
     } else {
         ## fixed variable order
         check_order(order, var_nms)
@@ -150,12 +153,15 @@ vinereg <- function(formula, data, family_set = "parametric", selcrit = "loglik"
 
 #' @noRd
 #' @importFrom stats pchisq
+#' @importFrom rvinecopulib as_rvine_structure
 finalize_vinereg_object <- function(formula, model_frame, margins, vine,
                                     status, var_nms) {
     ## adjust model matrix and names
     reorder <- status$selected_vars
     reorder[order(reorder)] <- seq_along(status$selected_vars)
-    vine$matrix <- gen_dvine_mat(elements = c(1, reorder + 1))
+    vine$structure <- as_rvine_structure(
+        gen_dvine_mat(elements = c(1, reorder + 1))
+    )
     vine$names <- c(var_nms[1], names(reorder)[reorder])
 
     ## compute fit statistics
@@ -226,7 +232,8 @@ fit_margins <- function(x, par_1d, cores, uscale) {
                 xmin = par_1d$xmin[k],
                 xmax = par_1d$xmax[k],
                 bw   = par_1d$bw[k],
-                mult = par_1d$mult[k]
+                mult = par_1d$mult[k],
+                deg  = par_1d$deg[k]
             )
             arg_lst[sapply(arg_lst, is.null)] <- NULL
             m <- do.call(kde1d, arg_lst)
@@ -270,13 +277,20 @@ process_par_1d <- function(pars, d) {
     }
     if (length(pars$bw) != d && !is.null(pars$bw))
         stop("'bw' must be a vector with one value for each variable")
-    if (is.null(pars$mult)) {
+
+    if (is.null(pars$mult))
         pars$mult <- 1
-    }
     if (length(pars$mult) == 1)
         pars$mult <- rep(pars$mult, d)
     if (length(pars$mult) != d)
-        stop("mult.1d has to be of length 1 or the number of variables")
+        stop("mult has to be of length 1 or the number of variables")
+
+    if (is.null(pars$deg))
+        pars$deg <- 2
+    if (length(pars$deg) == 1)
+        pars$deg <- rep(pars$deg, d)
+    if (length(pars$deg) != d)
+        stop("deg has to be of length 1 or the number of variables")
 
     pars
 }
@@ -287,7 +301,7 @@ process_par_1d <- function(pars, d) {
 initialize_fit <- function(u) {
     list(
         # 1-dimensional (= empty) vine
-        vine = list(pair_copulas = list(list()), matrix = as.matrix(1)),
+        vine = list(pair_copulas = list(list()), structure = as.matrix(1)),
         # array for storing pseudo-observations
         psobs = list(
             direct = array(u[, 1], dim = c(1, 1, nrow(u))),
@@ -355,7 +369,7 @@ calculate_crits <- function(clls, edf, n, selcrit) {
 #' @importFrom stats cor
 #' @importFrom rvinecopulib bicop_dist
 xtnd_vine <- function(new_var, old_fit, family_set, selcrit, ...) {
-    d <- ncol(old_fit$vine$matrix) + 1
+    d <- dim(old_fit$psobs$direct)[1] + 1
     n <- length(new_var)
 
     psobs <- list(
@@ -370,8 +384,9 @@ xtnd_vine <- function(new_var, old_fit, family_set, selcrit, ...) {
     edf <- 0
     for (i in rev(seq_len(d - 1))) {
         # get data for current edge
-        zr1 <- psobs$direct[i + 1, i, ]
-        zr2 <- if (i == d - 1) {
+        u_e <- matrix(NA, n, 2)
+        u_e[, 1] <- psobs$direct[i + 1, i, ]
+        u_e[, 2] <- if (i == d - 1) {
             psobs$direct[i + 1, i + 1, ]
         } else {
             psobs$indirect[i + 1, i + 1, ]
@@ -379,11 +394,11 @@ xtnd_vine <- function(new_var, old_fit, family_set, selcrit, ...) {
 
         # correct bandwidth for regression context
         # (optimal rate is n^(-1/5) instead of n^(-1/6))
-        n <- length(zr2)
-        dots <- modifyList(list(mult = n^(1/6 - 1/5)), list(...))
+        mult <- ifelse(is.null(list(...)$mult), 1, list(...)$mult)
+        dots <- modifyList(list(mult = n^(1/6 - 1/5) * mult), list(...))
         args <- modifyList(
             list(
-                data = cbind(zr2, zr1),
+                data = u_e,
                 family_set = family_set,
                 selcrit = selcrit
             ),
@@ -407,12 +422,15 @@ xtnd_vine <- function(new_var, old_fit, family_set, selcrit, ...) {
         edf <- edf + pc_fit$npars
 
         # pseudo observations for next tree
-        psobs$direct[i, i, ] <- hbicop(cbind(zr2, zr1), 1, pc_fit)
-        psobs$indirect[i, i, ] <- hbicop(cbind(zr2, zr1), 2, pc_fit)
+        psobs$direct[i, i, ] <- hbicop(u_e, 2, pc_fit)
+        psobs$indirect[i, i, ] <- hbicop(u_e, 1, pc_fit)
     }
 
-    vine <- vinecop_dist(old_fit$vine$pair_copulas, gen_dvine_mat(d))
-    cll <- sum(log(dbicop(cbind(zr2, zr1), pc_fit)))
-    list(vine = vine, psobs = psobs, cll = cll, edf = edf)
+    list(
+        vine = vinecop_dist(old_fit$vine$pair_copulas, gen_dvine_mat(d)),
+        psobs = psobs,
+        cll = logLik(pc_fit),
+        edf = edf
+    )
 }
 

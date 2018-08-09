@@ -8,6 +8,9 @@ library(dplyr)
 library(tidyr)
 
 ## ------------------------------------------------------------------------
+set.seed(5)
+
+## ------------------------------------------------------------------------
 data(abalone, package = "PivotalR")
 abalone_f <- abalone %>%
     dplyr::filter(sex == "F") %>%        # select female abalones
