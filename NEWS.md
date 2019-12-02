@@ -1,3 +1,29 @@
+# vinereg 0.7.0
+
+DEPDENDENCIES
+
+* removed dependence on future and furrr packages.
+
+NEW FEATURES
+
+* faster runtimes, especially for parallelized code.
+
+* handle discrete variables properly with both parametric and  nonparametric 
+  pair-copulas.
+
+REMOVED FEATURES
+
+* removed support for `uscale` argument.
+
+
+
+# vinereg 0.6.0
+
+NEW FEATURES
+
+* new function `cpit()` to compute the conditional cdf.
+
+
 # vinereg 0.5.0
 
 DEPENDS
@@ -28,7 +54,7 @@ BUG FIXES
 
 DEPENDS
 
-* Use `furrr` and `fututre` packages instead of `parallel`, `doParallel`, and 
+* Use `furrr` and `future` packages instead of `parallel`, `doParallel`, and 
   `foreach` for parallelization.
 
 NEW FEATURES

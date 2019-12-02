@@ -21,11 +21,12 @@ abalone_f <- abalone %>%
 pairs(abalone_f, pch = ".")
 
 ## ------------------------------------------------------------------------
-(fit_vine_par <- vinereg(
-    whole ~ length + diameter + height, 
-    data = abalone_f, 
-    selcrit = "aic"
-))
+fit_vine_par <- vinereg(
+  whole ~ length + diameter + height, 
+  data = abalone_f,  
+  family_set = c("onepar", "t"),
+  selcrit = "aic"
+)
 
 ## ------------------------------------------------------------------------
 fit_vine_par$order
@@ -76,12 +77,13 @@ plot_marginal_effects <- function(covs, preds) {
 plot_marginal_effects(abalone_f[, 1:3], pred_lqr)
 
 ## ---- fig.width=4.6, fig.height=4.6--------------------------------------
-(fit_vine_np <- vinereg(
-    whole ~ length + diameter + height,
-    data = abalone_f,
-    family_set = "nonpar",
-    selcrit = "aic"
-))
+fit_vine_np <- vinereg(
+  whole ~ length + diameter + height,
+  data = abalone_f,
+  family_set = "nonpar",
+  selcrit = "aic"
+)
+fit_vine_np
 contour(fit_vine_np$vine)
 
 ## ---- fig.width=7, fig.height=4------------------------------------------
@@ -89,11 +91,7 @@ plot_effects(fit_vine_np, var = c("diameter", "height", "length"))
 
 ## ---- fig.width=4.7, fig.height=4----------------------------------------
 abalone_f$rings <- as.ordered(abalone_f$rings)
-(fit_disc <- vinereg(
-    rings ~ .,
-    data = abalone_f,
-    family_set = "nonpar", 
-    selcrit = "aic"
-))
+fit_disc <- vinereg(rings ~ ., data = abalone_f, selcrit = "aic")
+fit_disc
 plot_effects(fit_disc)
 
