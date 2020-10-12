@@ -1,7 +1,7 @@
-## ----setup, include=FALSE------------------------------------------------
+## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
-## ---- message = FALSE----------------------------------------------------
+## ---- message = FALSE---------------------------------------------------------
 library(vinereg)
 library(quantreg)
 library(ggplot2)
@@ -9,7 +9,7 @@ library(dplyr)
 library(purrr)
 library(scales)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 plot_marginal_effects <- function(covs, preds) {
     cbind(covs, preds) %>%
         tidyr::gather(alpha, prediction, -seq_len(NCOL(covs))) %>%
@@ -25,12 +25,12 @@ plot_marginal_effects <- function(covs, preds) {
         xlab("")
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 bikedata <- read.csv("day.csv")
 bikedata[, 2] <- as.Date(bikedata[, 2])
 head(bikedata)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 bikedata  <- bikedata %>%
     rename(
         temperature = atemp, 
@@ -40,7 +40,7 @@ bikedata  <- bikedata %>%
         count = cnt
     )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 bikedata <- bikedata %>%
     mutate(
         temperature = 66 * temperature + 16,
@@ -48,7 +48,7 @@ bikedata <- bikedata %>%
         humidity = 100 * humidity
     )
 
-## ----count_with_trend----------------------------------------------------
+## ----count_with_trend---------------------------------------------------------
 ggplot(bikedata, aes(dteday, count)) +
     geom_line() + 
     scale_x_date(labels = scales::date_format("%b %y")) + 
@@ -58,7 +58,7 @@ ggplot(bikedata, aes(dteday, count)) +
     theme(plot.title = element_text(lineheight = 0.8, face = "bold", size = 20)) +
     theme(text = element_text(size = 18))
 
-## ----count_detrended-----------------------------------------------------
+## ----count_detrended----------------------------------------------------------
 lm_trend <- lm(count ~ instant, data = bikedata)
 trend <- predict(lm_trend)
 bikedata <- mutate(bikedata, count = count / trend)
@@ -70,20 +70,20 @@ ggplot(bikedata, aes(dteday, count)) +
     theme(plot.title = element_text(lineheight = 0.8, face = "bold", size = 20)) + 
     theme(text = element_text(size = 18))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 bikedata <- bikedata %>%
     select(-instant, -dteday, -yr) %>%  # time indices
     select(-casual, -registered) %>%    # casual + registered = count
     select(-holiday) %>%                # we use 'workingday' instead
     select(-temp)                       # we use 'temperature' (feeling temperature)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 disc_vars <- c("season", "month", "weekday", "workingday", "weathersituation")
 bikedata <- bikedata %>%
     mutate(weekday = ifelse(weekday == 0, 7, weekday)) %>%  # sun at end of week
     purrr::modify_at(disc_vars, as.ordered)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 fit <- vinereg(
   count ~ ., 
   data = bikedata, 
@@ -93,46 +93,46 @@ fit <- vinereg(
 fit
 summary(fit)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 alpha_vec <- c(0.1, 0.5, 0.9)
 pred <- fitted(fit, alpha_vec)
 
-## ----me_temperature, fig.width=4, fig.height=4---------------------------
+## ----me_temperature, fig.width=4, fig.height=4--------------------------------
 plot_marginal_effects(
     covs = select(bikedata, temperature), 
     preds = pred
 )
 
-## ----me_humidity, fig.width=4, fig.height=4, message=FALSE---------------
+## ----me_humidity, fig.width=4, fig.height=4, message=FALSE--------------------
 plot_marginal_effects(covs = select(bikedata, humidity), preds = pred) +
     xlim(c(25, 100))
 
-## ----me_windspeed, fig.width=4, fig.height=4, message=FALSE--------------
+## ----me_windspeed, fig.width=4, fig.height=4, message=FALSE-------------------
 plot_marginal_effects(covs = select(bikedata, windspeed), preds = pred) 
 
-## ----me_month, fig.width=4, fig.height=4, message=FALSE------------------
+## ----me_month, fig.width=4, fig.height=4, message=FALSE-----------------------
 month_labs <- c("Jan","", "Mar", "", "May", "", "Jul", "", "Sep", "", "Nov", "")
 plot_marginal_effects(covs = select(bikedata, month), preds = pred) +
         scale_x_discrete(limits = 1:12, labels = month_labs)
 
 
-## ----me_weathersituation, fig.width=4, fig.height=4, message=FALSE-------
+## ----me_weathersituation, fig.width=4, fig.height=4, message=FALSE------------
 plot_marginal_effects(covs = select(bikedata, weathersituation), 
                       preds = pred) +
     scale_x_discrete(limits = 1:3,labels = c("good", "medium", "bad"))
 
-## ----me_weekday, fig.width=4, fig.height=4, message=FALSE----------------
+## ----me_weekday, fig.width=4, fig.height=4, message=FALSE---------------------
 weekday_labs <- c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 plot_marginal_effects(covs = select(bikedata, weekday), preds = pred) +
     scale_x_discrete(limits = 1:7, labels = weekday_labs)
 
-## ----me_workingday, fig.width=4, fig.height=4, message=FALSE-------------
+## ----me_workingday, fig.width=4, fig.height=4, message=FALSE------------------
 plot_marginal_effects(covs = select(bikedata, workingday), preds = pred) +
     scale_x_discrete(limits = 0:1, labels = c("no", "yes")) +
     geom_smooth(method = "lm", se = FALSE) +
     xlim(c(0, 1))
 
-## ----me_season, fig.width=4, fig.height=4, message=FALSE-----------------
+## ----me_season, fig.width=4, fig.height=4, message=FALSE----------------------
 season_labs <- c("spring", "summer", "fall", "winter")
 plot_marginal_effects(covs = select(bikedata, season), preds = pred) +
     scale_x_discrete(limits = 1:4, labels = season_labs)
