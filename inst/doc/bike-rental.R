@@ -3,11 +3,11 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ## ---- message = FALSE---------------------------------------------------------
 library(vinereg)
-library(quantreg)
-library(ggplot2)
-library(dplyr)
-library(purrr)
-library(scales)
+pkgs_required <- c("ggplot2", "dplyr", "purrr", "scales", "quantreg")
+pkgs_available <- sapply(pkgs_required, require)
+
+## ----conditional_eval, include=FALSE------------------------------------------
+knitr::opts_chunk$set(eval = sum(pkgs_available))
 
 ## -----------------------------------------------------------------------------
 plot_marginal_effects <- function(covs, preds) {

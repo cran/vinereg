@@ -3,15 +3,18 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 
 ## ---- message = FALSE---------------------------------------------------------
 library(vinereg) 
-library(ggplot2)
-library(dplyr)
-library(tidyr)
+
+pkgs_required <- c("ggplot2", "dplyr", "tidyr", "AppliedPredictiveModeling")
+pkgs_available <- sapply(pkgs_required, require)
+
+## ----conditional_eval, include=FALSE------------------------------------------
+knitr::opts_chunk$set(eval = sum(pkgs_available))
 
 ## -----------------------------------------------------------------------------
 set.seed(5)
 
 ## -----------------------------------------------------------------------------
-data(abalone, package = "PivotalR")
+data(abalone, package = "AppliedPredictiveModeling")
 abalone_f <- abalone %>%
     dplyr::filter(sex == "F") %>%        # select female abalones
     dplyr::select(-id, -sex) %>%         # remove id and sex variables
