@@ -1,3 +1,16 @@
+# vinereg 0.8.0
+
+BUG FIXES
+
+* fix `cpit()` (last conditioning was sometimes omitted).
+
+* prevent `rvinecopulib` from spawning own threads.
+
+# NEW FEATURES
+
+* add `uscale` option to allow for external marginal modeling.
+
+
 # vinereg 0.7.3
 
 BUG FIXES
