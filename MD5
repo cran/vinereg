@@ -1,6 +1,6 @@
-ce92db2b03a131de1416f7c39e65a80a *DESCRIPTION
+a3d1856eb1473bb02706f23fcdcb3a2b *DESCRIPTION
 78b2d178963f218ce5ae47480f2cc6bc *NAMESPACE
-c4adb01443773cfec7b391e039626c5e *NEWS.md
+31ce506ff548e72b84b9d36222c284aa *NEWS.md
 f1a9998a7d2bf4c0edb5baa327456795 *R/RcppExports.R
 4f9ef317073a8c8f9c990683c6429b37 *R/cpit.R
 828357f9da76ffa83fef619db06711f8 *R/generics.R
@@ -9,12 +9,12 @@ bbb2da66b4ab5500cba2823da1d4c345 *R/tools.R
 ab3ff2b3e6dee06806a5e15fd1e18737 *R/vinereg.R
 b2514cfd5295c52abf6e3855c0c2f646 *README.md
 55f0f89d95413b9f4afcd7520377b2c7 *build/vignette.rds
-3c5cf81762ca08b004626694693c4e1b *inst/doc/abalone-example.R
-3d3c45f4a4e6904e37897c3ff554e578 *inst/doc/abalone-example.Rmd
-0a26a965e668ab2480be566e05c777c6 *inst/doc/abalone-example.html
-a50f0af79ae7cc496aea8965deb67c0f *inst/doc/bike-rental.R
-05083856a20a6483b3a1d007341d19a1 *inst/doc/bike-rental.Rmd
-52942f7eb37fb0d7e1271a46bcc5ccb9 *inst/doc/bike-rental.html
+46058f2dd1e938ad2452a08b07599a60 *inst/doc/abalone-example.R
+b099fd529709e1cd78b34efdab288a3b *inst/doc/abalone-example.Rmd
+9b4f1009c4bf67336acd663ca308c00d *inst/doc/abalone-example.html
+1a1ab95c6d0a473641c5ed06da87e21d *inst/doc/bike-rental.R
+47bb668392e6650769343414b874e820 *inst/doc/bike-rental.Rmd
+ab2f951e5a44af61724bf55170819bd2 *inst/doc/bike-rental.html
 234e1fde69d0d1fad425fe3f8694576a *inst/include/dvine_reg_selector.hpp
 47cd50911f4b3c0192a4c2f2179797d4 *man/cpit.Rd
 ac62df77709bc256171d6fcf824f2fa4 *man/figures/README-unnamed-chunk-1-1.png
@@ -30,6 +30,6 @@ b1461acb13399ff4c483b40fc15a5e4f *tests/testthat.R
 1c9a76ce9089c79fd9d2766708de8d5b *tests/testthat/test-predict.R
 a50932d6f2bc53a97013acb15050b504 *tests/testthat/test-test-cpit.R
 c2af71cad995a3b6089afe864682d3f0 *tests/testthat/test-vinereg.R
-3d3c45f4a4e6904e37897c3ff554e578 *vignettes/abalone-example.Rmd
-05083856a20a6483b3a1d007341d19a1 *vignettes/bike-rental.Rmd
+b099fd529709e1cd78b34efdab288a3b *vignettes/abalone-example.Rmd
+47bb668392e6650769343414b874e820 *vignettes/bike-rental.Rmd
 fc9dd35812a1ee180fe17e6ef72a4121 *vignettes/day.csv

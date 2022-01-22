@@ -3,21 +3,23 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 
 ## ---- message = FALSE---------------------------------------------------------
 library(vinereg) 
-
-pkgs_required <- c("ggplot2", "dplyr", "tidyr", "AppliedPredictiveModeling")
-pkgs_available <- sapply(pkgs_required, require)
-
-## ----conditional_eval, include=FALSE------------------------------------------
-knitr::opts_chunk$set(eval = sum(pkgs_available))
+require(ggplot2)
+require(dplyr)
+require(tidyr)
+require(AppliedPredictiveModeling)
 
 ## -----------------------------------------------------------------------------
 set.seed(5)
 
 ## -----------------------------------------------------------------------------
 data(abalone, package = "AppliedPredictiveModeling")
+colnames(abalone) <- c(
+  "sex", "length", "diameter", "height", "whole", 
+  "shucked", "viscera", "shell", "rings"
+)
 abalone_f <- abalone %>%
     dplyr::filter(sex == "F") %>%        # select female abalones
-    dplyr::select(-id, -sex) %>%         # remove id and sex variables
+    dplyr::select(-sex) %>%         # remove id and sex variables
     dplyr::filter(height < max(height))  # remove height outlier
 
 ## ---- fig.width=7, fig.height=6-----------------------------------------------

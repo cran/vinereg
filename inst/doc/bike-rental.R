@@ -3,11 +3,11 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ## ---- message = FALSE---------------------------------------------------------
 library(vinereg)
-pkgs_required <- c("ggplot2", "dplyr", "purrr", "scales", "quantreg")
-pkgs_available <- sapply(pkgs_required, require)
-
-## ----conditional_eval, include=FALSE------------------------------------------
-knitr::opts_chunk$set(eval = sum(pkgs_available))
+require(ggplot2)
+require(dplyr)
+require(purrr)
+require(scales)
+require(quantreg)
 
 ## -----------------------------------------------------------------------------
 plot_marginal_effects <- function(covs, preds) {
@@ -55,7 +55,7 @@ ggplot(bikedata, aes(dteday, count)) +
     xlab("date") + 
     ylab("rental count") + 
     stat_smooth(method = "lm", se = FALSE, linetype = "dashed") + 
-    theme(plot.title = element_text(lineheight = 0.8, face = "bold", size = 20)) +
+    theme(plot.title = element_text(lineheight = 0.8, size = 20)) +
     theme(text = element_text(size = 18))
 
 ## ----count_detrended----------------------------------------------------------
@@ -67,7 +67,7 @@ ggplot(bikedata, aes(dteday, count)) +
     scale_x_date(labels = scales::date_format("%b %y")) + 
     xlab("date") + 
     ylab("detrended rental count") + 
-    theme(plot.title = element_text(lineheight = 0.8, face = "bold", size = 20)) + 
+    theme(plot.title = element_text(lineheight = 0.8, size = 20)) + 
     theme(text = element_text(size = 18))
 
 ## -----------------------------------------------------------------------------
