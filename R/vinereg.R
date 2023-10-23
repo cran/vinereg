@@ -111,7 +111,6 @@ vinereg <- function(formula, data, family_set = "parametric", selcrit = "aic",
     par_method = "mle",
     nonpar_method = "quadratic",
     mult = 1,
-    weights = weights,
     psi0 = 0.9,
     presel = TRUE,
     keep_data = FALSE
@@ -120,6 +119,7 @@ vinereg <- function(formula, data, family_set = "parametric", selcrit = "aic",
     bicop,
     modifyList(arg, list(...))
   )$controls
+  ctrl$weights <- numeric()
 
   if (!all(is.na(order))) {
     check_order(order, names(mfx))
@@ -148,12 +148,13 @@ vinereg <- function(formula, data, family_set = "parametric", selcrit = "aic",
 
     # now we need the correct ordering in selected_vars
     selected_vars <- sapply(order, function(x) which(x == names(mfx)))
-    args <- append(
+    args <- modifyList(
       ctrl,
       list(
         data = u,
         var_types = var_types,
         cores = cores,
+        weights = weights,
         structure = dvine_structure(rank(c(1, selected_vars)))
       )
     )
@@ -180,9 +181,9 @@ vinereg <- function(formula, data, family_set = "parametric", selcrit = "aic",
       u <- as.matrix(mfx)
     }
 
-    args <- append(
+    args <- modifyList(
       ctrl,
-      list(data = u, var_types = var_types, cores = cores)
+      list(data = u, var_types = var_types, cores = cores, weights = weights)
     )
     fit <- do.call(select_dvine_cpp, args)
     if (!uscale)
@@ -223,10 +224,10 @@ finalize_vinereg_object <- function(formula, selcrit, model_frame, margins, vine
     pchisq(2 * var_cll, var_edf, lower.tail = FALSE)
   )
   var_p_value[1] <- NA
-  cll <- sum(var_cll)
-  edf <- sum(var_edf)
-  caic <- sum(var_caic)
-  cbic <- sum(var_cbic)
+  cll <- sum(var_cll, na.rm = TRUE)
+  edf <- sum(var_edf, na.rm = TRUE)
+  caic <- sum(var_caic, na.rm = TRUE)
+  cbic <- sum(var_cbic, na.rm = TRUE)
 
   stats <- list(
     nobs = nobs,

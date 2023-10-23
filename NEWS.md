@@ -1,3 +1,17 @@
+# vinereg 0.9.1
+
+BUG FIX
+
+* fix unnecessary error when calling `vinereg()` with weights.
+ 
+
+# vinereg 0.9.0
+
+NEW FEATURE
+
+* New function `cll()` to compute the conditional log-likelihood.
+ 
+ 
 # vinereg 0.8.3
 
 BUG FIX
@@ -28,7 +42,7 @@ BUG FIXES
 
 * prevent `rvinecopulib` from spawning own threads.
 
-# NEW FEATURES
+NEW FEATURES
 
 * add `uscale` option to allow for external marginal modeling.
 
