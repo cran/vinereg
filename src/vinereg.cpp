@@ -24,10 +24,10 @@ using namespace vinecopulib;
 // [[Rcpp::export]]
 std::vector<Rcpp::List>
 fit_margins_cpp(const Eigen::MatrixXd& data,
-                const Eigen::VectorXi& nlevels,
-                const Eigen::VectorXd& mult,
                 const Eigen::VectorXd& xmin,
                 const Eigen::VectorXd& xmax,
+                const std::vector<std::string>& type,
+                const Eigen::VectorXd& mult,
                 const Eigen::VectorXd& bw,
                 const Eigen::VectorXi& deg,
                 const Eigen::VectorXd& weights,
@@ -40,14 +40,15 @@ fit_margins_cpp(const Eigen::MatrixXd& data,
       0,
       d,
       [&](const size_t& k) {
-          fits_cpp[k] = kde1d::Kde1d(data.col(k),
-                                     nlevels(k),
-                                     bw(k),
-                                     mult(k),
-                                     xmin(k),
-                                     xmax(k),
-                                     deg(k),
-                                     weights);
+        fits_cpp[k] = kde1d::Kde1d(
+          xmin(k),
+          xmax(k),
+          type.at(k),
+          mult(k),
+          bw(k),
+          deg(k)
+        );
+        fits_cpp[k].fit(data.col(k), weights);
       },
       num_threads);
 
@@ -141,7 +142,6 @@ cond_quantile_cpp(const Eigen::VectorXd& alpha,
 
     auto trunc_lvl = vine_struct_.get_trunc_lvl();
     auto order = vine_struct_.get_order();
-    auto inverse_order = tools_stl::invert_permutation(order);
     std::vector<Eigen::VectorXd> q(alpha.size());
     for (auto& qq : q)
         qq.resize(u.rows());
@@ -245,7 +245,6 @@ cond_dist_cpp(const Eigen::MatrixXd& u,
 
     auto trunc_lvl = vine_struct_.get_trunc_lvl();
     auto order = vine_struct_.get_order();
-    auto inverse_order = tools_stl::invert_permutation(order);
 
     Eigen::VectorXd p(u.rows());
     auto do_batch = [&](const tools_batch::Batch& b) {
@@ -342,7 +341,6 @@ cond_dens_cpp(const Eigen::MatrixXd& u,
     // indexing)
     size_t trunc_lvl = rvine_structure_.get_trunc_lvl();
     auto order = rvine_structure_.get_order();
-    auto disc_cols = tools_select::get_disc_cols(var_types_);
 
     // initial value must be 1.0 for multiplication
     Eigen::VectorXd pdf = Eigen::VectorXd::Constant(u.rows(), 1.0);
@@ -363,7 +361,7 @@ cond_dens_cpp(const Eigen::MatrixXd& u,
             hfunc2.col(j) = u.block(b.begin, order[j] - 1, b.size, 1);
             if (var_types_[order[j] - 1] == "d") {
                 hfunc2_sub.col(j) =
-                  u.block(b.begin, d_ + disc_cols[order[j] - 1], b.size, 1);
+                  u.block(b.begin, d_ + order[j] - 1, b.size, 1);
             }
         }
 
